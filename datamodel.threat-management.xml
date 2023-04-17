@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<itop_design xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.7">
+    <classes>
+        <class id="Threat" _delta="define">
+            <parent>Ticket</parent>
+            <properties>
+                <comment><![CDATA[/**
+ * Persistent classes for a CMDB
+ *
+ * @copyright   Copyright (C) 2010-2012 Combodo SARL
+ * @license     http://opensource.org/licenses/AGPL-3.0
+ */]]></comment>
+                <category>bizmodel,searchable,problemmgmt</category>
+                <abstract>false</abstract>
+                <key_type>autoincrement</key_type>
+                <db_table>ticket_threat</db_table>
+                <db_key_field>id</db_key_field>
+                <db_final_class_field/>
+                <naming>
+                    <attributes>
+                        <attribute id="ref"/>
+                    </attributes>
+                </naming>
+                <display_template/>
+                <reconciliation>
+                    <attributes>
+                        <attribute id="ref"/>
+                    </attributes>
+                </reconciliation>
+                <order>
+                    <columns>
+                        <column id="ref" ascending="false"/>
+                    </columns>
+                </order>
+            </properties>
+            <fields>
+                <field id="status" xsi:type="AttributeEnum">
+                    <values>
+                        <value id="new">new</value>
+                        <value id="closed">closed</value>
+                    </values>
+                    <sql>status</sql>
+                    <default_value>new</default_value>
+                    <is_null_allowed>false</is_null_allowed>
+                    <display_style>list</display_style>
+                </field>
+                <field id="service_id" xsi:type="AttributeExternalKey">
+                    <filter>SELECT Service</filter>
+                    <dependencies>
+                        <attribute id="org_id"/>
+                    </dependencies>
+                    <sql>service_id</sql>
+                    <target_class>Service</target_class>
+                    <is_null_allowed>true</is_null_allowed>
+                    <on_target_delete>DEL_MANUAL</on_target_delete>
+                    <allow_target_creation>false</allow_target_creation>
+                </field>
+                <field id="service_name" xsi:type="AttributeExternalField">
+                    <extkey_attcode>service_id</extkey_attcode>
+                    <target_attcode>name</target_attcode>
+                </field>
+                <field id="solution_description" xsi:type="AttributeText">
+                    <sql>solution_description</sql>
+                    <is_null_allowed>true</is_null_allowed>
+                    <width>800px</width>
+                    <height>200px</height>
+                </field>
+                <field id="servicesubcategory_id" xsi:type="AttributeExternalKey">
+                    <filter><![CDATA[SELECT ServiceSubcategory WHERE service_id = :this->service_id]]></filter>
+                    <dependencies>
+                        <attribute id="service_id"/>
+                    </dependencies>
+                    <sql>servicesubcategory_id</sql>
+                    <target_class>ServiceSubcategory</target_class>
+                    <is_null_allowed>true</is_null_allowed>
+                    <on_target_delete>DEL_MANUAL</on_target_delete>
+                    <allow_target_creation>false</allow_target_creation>
+                </field>
+                <field id="servicesubcategory_name" xsi:type="AttributeExternalField">
+                    <extkey_attcode>servicesubcategory_id</extkey_attcode>
+                    <target_attcode>name</target_attcode>
+                </field>
+                <field id="related_change_id" xsi:type="AttributeExternalKey">
+                    <filter><![CDATA[SELECT Change WHERE status != "closed"]]></filter>
+                    <sql>related_change_id</sql>
+                    <target_class>Change</target_class>
+                    <is_null_allowed>true</is_null_allowed>
+                    <on_target_delete>DEL_MANUAL</on_target_delete>
+                </field>
+                <field id="related_change_ref" xsi:type="AttributeExternalField">
+                    <extkey_attcode>related_change_id</extkey_attcode>
+                    <target_attcode>ref</target_attcode>
+                </field>
+                <field id="assignment_date" xsi:type="AttributeDateTime">
+                    <sql>assignment_date</sql>
+                    <default_value/>
+                    <is_null_allowed>true</is_null_allowed>
+                </field>
+                <field id="resolution_date" xsi:type="AttributeDateTime">
+                    <sql>resolution_date</sql>
+                    <default_value/>
+                    <is_null_allowed>true</is_null_allowed>
+                </field>
+                <field id="knownerrors_list" xsi:type="AttributeLinkedSet">
+                    <linked_class>KnownError</linked_class>
+                    <ext_key_to_me>problem_id</ext_key_to_me>
+                    <edit_mode>add_only</edit_mode>
+                    <count_min>0</count_min>
+                    <count_max>0</count_max>
+                </field>
+                <field id="related_request_list" xsi:type="AttributeLinkedSet">
+                    <linked_class>UserRequest</linked_class>
+                    <ext_key_to_me>parent_problem_id</ext_key_to_me>
+                    <edit_mode>add_remove</edit_mode>
+                    <count_min>0</count_min>
+                    <count_max>0</count_max>
+                </field>
+                <field id="related_incident_list" xsi:type="AttributeLinkedSet">
+                    <linked_class>Incident</linked_class>
+                    <ext_key_to_me>parent_problem_id</ext_key_to_me>
+                    <edit_mode>add_remove</edit_mode>
+                    <count_min>0</count_min>
+                    <count_max>0</count_max>
+                </field>
+            </fields>
+            <lifecycle>
+                <attribute>status</attribute>
+                <stimuli>
+                    <stimulus id="ev_close" xsi:type="StimulusUserAction"/>
+                </stimuli>
+                <states>
+                    <state id="new">
+                        <flags>
+                            <attribute id="ref">
+                                <read_only/>
+                            </attribute>
+                            <attribute id="org_id">
+                                <must_prompt/>
+                            </attribute>
+                            <attribute id="team_id">
+                                <hidden/>
+                            </attribute>
+                            <attribute id="agent_id">
+                                <hidden/>
+                            </attribute>
+                            <attribute id="description">
+                                <must_prompt/>
+                            </attribute>
+                            <attribute id="start_date">
+                                <read_only/>
+                            </attribute>
+                            <attribute id="last_update">
+                                <read_only/>
+                            </attribute>
+                            <attribute id="close_date">
+                                <hidden/>
+                            </attribute>
+                            <attribute id="service_id">
+                                <normal/>
+                            </attribute>
+                            <attribute id="servicesubcategory_id">
+                                <normal/>
+                            </attribute>
+                            <attribute id="related_change_id">
+                                <normal/>
+                            </attribute>
+                            <attribute id="assignment_date">
+                                <hidden/>
+                            </attribute>
+                            <attribute id="resolution_date">
+                                <hidden/>
+                            </attribute>
+                        </flags>
+                        <transitions>
+                            <transition id="ev_close">
+                                <target>closed</target>
+                                <actions>
+                                    <action>
+                                        <verb>SetCurrentDate</verb>
+                                        <params>
+                                            <param xsi:type="attcode">assignment_date</param>
+                                        </params>
+                                    </action>
+                                </actions>
+                            </transition>
+                        </transitions>
+                    </state>
+                    <state id="closed">
+                        <inherit_flags_from>new</inherit_flags_from>
+                        <flags>
+                            <attribute id="solution_description">
+                                <mandatory/>
+                                <must_prompt/>
+                            </attribute>
+                        </flags>
+                        <transitions/>
+                    </state>
+                </states>
+            </lifecycle>
+            <methods>
+				<method id="GetTicketRefFormat">
+					<static>true</static>
+					<access>public</access>
+					<type>Overload-DBObject</type>
+					<code><![CDATA[
+        public static function GetTicketRefFormat()
+        {
+                return 'TH-%06d';
+        }
+        ]]></code>
+				</method>
+                <method id="SetAssignedDate">
+                    <comment><![CDATA[/**
+	 * To be deprecated: use SetCurrentDate() instead
+	 * @return void
+	 */]]></comment>
+                    <static>false</static>
+                    <access>public</access>
+                    <type>LifecycleAction</type>
+                    <code><![CDATA[        public function SetAssignedDate($sStimulusCode)
+        {
+                $this->Set('assignment_date', time());
+                return true;
+        }]]></code>
+                </method>
+                <method id="SetResolveDate">
+                    <comment><![CDATA[/**
+	 * To be deprecated: use SetCurrentDate() instead
+	 * @return void
+	 */]]></comment>
+                    <static>false</static>
+                    <access>public</access>
+                    <type>LifecycleAction</type>
+                    <code><![CDATA[        public function SetResolveDate($sStimulusCode)
+        {
+                $this->Set('resolution_date', time());
+                return true;
+        }]]></code>
+                </method>
+                <method id="SetClosureDate">
+                    <comment><![CDATA[/**
+	 * To be deprecated: use SetCurrentDate() instead
+	 * @return void
+	 */]]></comment>
+                    <static>false</static>
+                    <access>public</access>
+                    <type>LifecycleAction</type>
+                    <code><![CDATA[        public function SetClosureDate($sStimulusCode)
+        {
+                $this->Set('close_date', time());
+                return true;
+        }]]></code>
+                </method>
+                <method id="OnInsert">
+                    <static>false</static>
+                    <access>protected</access>
+                    <type>Overload-DBObject</type>
+                    <code><![CDATA[	protected function OnInsert()
+	{
+		$this->SetIfNull('start_date', time());
+		$this->SetIfNull('last_update', time());
+	}]]></code>
+                </method>
+                <method id="OnUpdate">
+                    <static>false</static>
+                    <access>protected</access>
+                    <type>Overload-DBObject</type>
+                    <code><![CDATA[	protected function OnUpdate()
+	{
+		$this->Set('last_update', time());
+	}]]></code>
+                </method>
+            </methods>
+            <presentation>
+                <details>
+                    <items>
+                        <item id="functionalcis_list">
+                            <rank>10</rank>
+                        </item>
+                        <item id="contacts_list">
+                            <rank>20</rank>
+                        </item>
+                        <item id="knownerrors_list">
+                            <rank>30</rank>
+                        </item>
+                        <item id="workorders_list">
+                            <rank>40</rank>
+                        </item>
+                        <item id="related_request_list">
+                            <rank>50</rank>
+                        </item>
+                        <item id="related_incident_list">
+                            <rank>50</rank>
+                        </item>
+                        <item id="col:col1">
+                            <rank>60</rank>
+                            <items>
+                                <item id="fieldset:Ticket:baseinfo">
+                                    <rank>10</rank>
+                                    <items>
+                                        <item id="ref">
+                                            <rank>10</rank>
+                                        </item>
+                                        <item id="title">
+                                            <rank>20</rank>
+                                        </item>
+                                        <item id="org_id">
+                                            <rank>30</rank>
+                                        </item>
+                                        <item id="status">
+                                            <rank>40</rank>
+                                        </item>
+                                        <item id="service_id">
+                                            <rank>60</rank>
+                                        </item>
+                                        <item id="servicesubcategory_id">
+                                            <rank>70</rank>
+                                        </item>
+                                    </items>
+                                </item>
+                                <item id="fieldset:Ticket:moreinfo">
+                                    <rank>20</rank>
+                                    <items>
+                                        <item id="description">
+                                            <rank>30</rank>
+                                        </item>
+                                        <item id="solution_description">
+                                            <rank>40</rank>
+                                        </item>
+                                    </items>
+                                </item>
+                            </items>
+                        </item>
+                        <item id="col:col2">
+                            <rank>70</rank>
+                            <items>
+                                <item id="fieldset:Ticket:date">
+                                    <rank>10</rank>
+                                    <items>
+                                        <item id="start_date">
+                                            <rank>10</rank>
+                                        </item>
+                                        <item id="last_update">
+                                            <rank>20</rank>
+                                        </item>
+                                        <item id="assignment_date">
+                                            <rank>30</rank>
+                                        </item>
+                                        <item id="resolution_date">
+                                            <rank>40</rank>
+                                        </item>
+                                        <item id="close_date">
+                                            <rank>50</rank>
+                                        </item>
+                                    </items>
+                                </item>
+                                <item id="fieldset:Ticket:contact">
+                                    <rank>20</rank>
+                                    <items>
+                                        <item id="caller_id">
+                                            <rank>10</rank>
+                                        </item>
+                                        <item id="team_id">
+                                            <rank>20</rank>
+                                        </item>
+                                        <item id="agent_id">
+                                            <rank>30</rank>
+                                        </item>
+                                    </items>
+                                </item>
+                                <item id="fieldset:Ticket:relation">
+                                    <rank>30</rank>
+                                    <items>
+                                        <item id="related_change_id">
+                                            <rank>10</rank>
+                                        </item>
+                                    </items>
+                                </item>
+                            </items>
+                        </item>
+                    </items>
+                </details>
+                <search>
+                    <items>
+                        <item id="ref">
+                            <rank>10</rank>
+                        </item>
+                        <item id="title">
+                            <rank>20</rank>
+                        </item>
+                        <item id="org_id">
+                            <rank>30</rank>
+                        </item>
+                        <item id="start_date">
+                            <rank>40</rank>
+                        </item>
+                        <item id="status">
+                            <rank>50</rank>
+                        </item>
+                        <item id="operational_status">
+                            <rank>55</rank>
+                        </item>
+                        <item id="service_id">
+                            <rank>60</rank>
+                        </item>
+                        <item id="servicesubcategory_id">
+                            <rank>70</rank>
+                        </item>
+                        <item id="caller_id">
+                            <rank>120</rank>
+                        </item>
+                        <item id="team_id">
+                            <rank>130</rank>
+                        </item>
+                        <item id="agent_id">
+                            <rank>140</rank>
+                        </item>
+                        <item id="close_date">
+                            <rank>150</rank>
+                        </item>
+                    </items>
+                </search>
+                <list>
+                    <items>
+                        <item id="title">
+                            <rank>10</rank>
+                        </item>
+                        <item id="org_id">
+                            <rank>20</rank>
+                        </item>
+                        <item id="start_date">
+                            <rank>30</rank>
+                        </item>
+                        <item id="status">
+                            <rank>40</rank>
+                        </item>
+                        <item id="service_id">
+                            <rank>50</rank>
+                        </item>
+                    </items>
+                </list>
+            </presentation>
+        </class>
+    </classes>
+    <menus>
+        <menu id="ThreatManagement" xsi:type="MenuGroup" _delta="define_if_not_exists">
+            <rank>43</rank>
+        </menu>
+        <menu id="NewThreat" xsi:type="NewObjectMenuNode" _delta="define">
+            <rank>1</rank>
+            <parent>ThreatManagement</parent>
+            <class>Threat</class>
+        </menu>
+        <menu id="SearchThreat" xsi:type="SearchMenuNode" _delta="define">
+            <rank>2</rank>
+            <parent>ThreatManagement</parent>
+            <class>Threat</class>
+        </menu>
+    </menus>
+</itop_design>
